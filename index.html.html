@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de música de lujo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+            background-color: #121212;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .player-container {
+            width: 100%;
+            max-width: 480px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden; /* Asegura que el contenido quede dentro de los bordes redondeados */
+        }
+
+        /* Vídeo de fondo */
+        .background-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            object-fit: cover;
+            border-radius: 20px;
+        }
+
+        .album-cover {
+            width: 100%;
+            height: 300px;
+            background-image: url('Imagen/Portada.jpeg');
+            background-size: cover;
+            background-position: center;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+        }
+
+        .song-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .song-info h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .song-info p {
+            font-size: 16px;
+            color: #B3B3B3;
+        }
+
+        .lyrics-container {
+            font-size: 18px;
+            color: #DDD;
+            margin-top: 20px;
+            text-align: center;
+            line-height: 1.5;
+            height: 200px;
+            overflow-y: auto;
+            display: none;
+            
+        }
+
+        .highlight {
+            color: #1DB954;
+            font-weight: bold;
+        }
+
+        .audio-player {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #555;
+            border-radius: 10px;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .progress {
+            height: 100%;
+            width: 0;
+            background-color: #1DB954;
+            border-radius: 10px;
+            transition: width 0.2s ease;
+        }
+
+        .time-display {
+            font-size: 14px;
+            color: #B3B3B3;
+            margin: 5px 0;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .button {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .button:hover {
+            transform: scale(1.1);
+            background-color: #1DB954;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .button:focus {
+            outline: none;
+        }
+
+        /* Micrófono */
+        .microphone {
+            width: 60px;
+            height: 60px;
+            background-color: #1DB954;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+            transition: all 0.3s ease;
+        }
+
+        .microphone:hover {
+            transform: scale(1.1);
+            background-color: #1ED760;
+        }
+
+        @media (max-width: 768px) {
+            .player-container {
+                padding: 20px;
+            }
+
+            .album-cover {
+                height: 250px;
+            }
+
+            .song-info h1 {
+                font-size: 20px;
+            }
+
+            .lyrics-container {
+                font-size: 16px;
+            }
+
+            .button {
+                font-size: 22px;
+                padding: 12px;
+            }
+
+            .microphone {
+                width: 50px;
+                height: 50px;
+                bottom: 10px;
+                right: 10px;
+            }
+
+                .lyrics-container::-webkit-scrollbar {
+                    display: none;
+                }
+            }
+
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <video class="background-video" autoplay muted loop>
+            <source src="Video/Feid - Le Pido A Dios (Video Oficial).mp4" type="video/mp4">
+        </video>
+        <!-- Portada del Álbum -->
+        <div class="album-cover"></div>
+        <!-- Información de la Canción -->
+        <div class="song-info">
+            <h1>Le Pido A Dios</h1>
+            <p>Feid</p>
+        </div>
+        <!-- Letra -->
+        <div class="lyrics-container" id="lyrics">
+            <!-- Letras cargadas dinámicamente aquí -->
+        </div>
+        <!-- Controles de audio -->
+        <div class="audio-player">
+            <audio id="audio" src="Musica/Le pido a Dios.mp3"></audio>
+            <div class="progress-bar" id="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="time-display" id="time-display">0:00 / 0:00</div>
+            <div class="controls">
+                <button class="button" id="rewind">⏪</button>
+                <button class="button" id="play">▶</button>
+                <button class="button" id="forward">⏩</button>
+            </div>
+        </div>
+        <!-- Icono de micrófono -->
+        <div class="microphone" id="microphone">
+            <span>🎤</span>
+        </div>
+    </div>
+    <script>
+    const audio = document.getElementById('audio');
+const progress = document.getElementById('progress');
+const timeDisplay = document.getElementById('time-display');
+const playButton = document.getElementById('play');
+const rewindButton = document.getElementById('rewind');
+const forwardButton = document.getElementById('forward');
+const progressBar = document.getElementById('progress-bar');
+const lyricsElement = document.getElementById('lyrics');
+const microphoneButton = document.getElementById('microphone');
+
+let isUserScrolling = false; // Para detectar si el usuario está interactuando con el scroll
+let autoScrollTimeout; // Timeout para reactivar el autoscroll
+
+// Datos de las letras con marcas de tiempo
+const lyricsData = [
+      { time: 16, text: 'Mmm' },
+      { time: 17, text: 'Feid' },
+      { time: 18, text: 'Primo' },
+      { time: 21, text: 'Si mañana no estoy' },
+      { time: 23, text: 'Quédate con todas las noches que hablamos por el celu' },
+      { time: 27, text: 'Que hicimos el amor' },
+      { time: 28, text: 'Que manejamos por la calle en el Mercho' },
+      { time: 30, text: 'Tú mirándome y yo diciéndote' },
+      { time: 33, text: '¿Amor qué hacemos hoy?' },
+      { time: 36, text: 'Te juro que de aquí no me voy' },
+      { time: 38, text: 'Yo en una nota pensando dónde estás' },
+      { time: 39, text: 'chimba encontrarte'  },
+      { time: 41, text: 'qué rico bailar contigo otro reggaetón   '  },
+      { time: 45, text: 'Un hoodie no tenías gistro '  },
+      { time: 46, text: 'Te di un beso y sonaba la intro'  },
+      { time: 48, text: 'ey, wow  '  },
+      { time: 50, text: 'Ese día todo fue distinto'  },
+      { time: 51, text: 'La disco oscura como el vino tinto'},     
+      { time: 54, text: 'Yo sé que a veces la cago hablándote'},  
+      { time: 56, text: 'Pero es que afuera hay muchos cabrones rocandome'},  
+      { time: 60, text: 'hey'},  
+      { time: 61, text: 'todos estos culos likeándome'},  
+      { time: 62, text: 'Y tú eres la única que yo quiero estar chingándome'},  
+      { time: 66, text: 'Le pido a Dios que te cuide'}, 
+      { time: 67, text: 'Que si me voy, que te cuide'}, 
+      { time: 68, text: 'Que sea el aire que respire'}, 
+      { time: 70, text: 'Que lo nuestro nunca expire '}, 
+      { time: 74, text: 'Que seas leal como la mafia y que nunca te me vires'}, 
+      { time: 79, text: 'Yo diciéndote Amor, ¿Qué hacemos hoy?'}, 
+      { time: 81, text: 'Te juro que de aquí no me voy'}, 
+      { time: 90, text: 'Yo diciéndote Amor, ¿Qué hacemos hoy?'}, 
+      { time: 92, text: 'Te juro que de aquí no me voy'}, 
+      { time: 99, text: 'Yo creo que tú has sido mi primera mujer'},
+      { time: 100, text: 'Ninguna gata me ha hecho ver lo que tú me has hecho ver'},
+      { time: 102, text: 'La felicidad no tiene precio, pero tiene tu name'}, 
+    // Añade más letras con sus respectivas marcas de tiempo
+];
+
+// Función para mostrar las letras de forma dinámica
+function displayLyrics() {
+    lyricsElement.innerHTML = '';
+    lyricsData.forEach((lyric) => {
+        const line = document.createElement('p');
+        line.classList.add('line');
+        line.textContent = lyric.text;
+        line.setAttribute('data-time', lyric.time);
+        lyricsElement.appendChild(line);
+
+        // Hacer clic en una línea para ir al tiempo correspondiente
+        line.addEventListener('click', () => {
+            audio.currentTime = lyric.time;
+        });
+    });
+}
+
+// Función para resaltar letras en base al tiempo actual
+function highlightLyrics() {
+    if (isUserScrolling) return; // No realizar autoscroll si el usuario está moviendo el scroll
+
+    const currentTime = audio.currentTime;
+    const lines = lyricsElement.getElementsByClassName('line');
+    Array.from(lines).forEach(line => {
+        const lyricTime = parseFloat(line.getAttribute('data-time'));
+        if (currentTime >= lyricTime && currentTime < lyricTime + 5) {
+            line.classList.add('highlight');
+            line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            line.classList.remove('highlight');
+        }
+    });
+}
+
+// Detectar interacción del usuario con el scroll
+lyricsElement.addEventListener('scroll', () => {
+    isUserScrolling = true; // El usuario está interactuando manualmente
+
+    // Cancelar el timeout previo si existe
+    if (autoScrollTimeout) clearTimeout(autoScrollTimeout);
+
+    // Reiniciar el autoscroll después de 3 segundos de inactividad del usuario
+    autoScrollTimeout = setTimeout(() => {
+        isUserScrolling = false;
+    }, 3000);
+});
+
+// Función para actualizar la barra de progreso
+function updateProgress() {
+    const currentTime = audio.currentTime;
+    const duration = audio.duration;
+    const progressPercent = (currentTime / duration) * 100;
+    progress.style.width = progressPercent + '%';
+
+    // Actualizar la visualización del tiempo
+    const minutes = Math.floor(currentTime / 60);
+    const seconds = Math.floor(currentTime % 60);
+    const durationMinutes = Math.floor(duration / 60);
+    const durationSeconds = Math.floor(duration % 60);
+    timeDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds} / ${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+}
+
+// Navegar por la barra de progreso al hacer clic o tocar
+progressBar.addEventListener('click', (e) => {
+    const progressBarWidth = progressBar.offsetWidth;
+    const clickX = e.offsetX; // Posición donde el usuario hizo clic
+    const duration = audio.duration; // Duración total del audio
+    const newTime = (clickX / progressBarWidth) * duration; // Calcular el nuevo tiempo
+    audio.currentTime = newTime;
+});
+
+// Reproducir o pausar el audio
+playButton.addEventListener('click', () => {
+    if (audio.paused) {
+        audio.play();
+        playButton.innerHTML = '❚❚';
+    } else {
+        audio.pause();
+        playButton.innerHTML = '▶';
+    }
+});
+
+// Rebobinar el audio 10 segundos
+rewindButton.addEventListener('click', () => {
+    audio.currentTime -= 10;
+});
+
+// Avanzar el audio 10 segundos
+forwardButton.addEventListener('click', () => {
+    audio.currentTime += 10;
+});
+
+// Activar o desactivar la visualización de la letra al hacer clic en el micrófono
+microphoneButton.addEventListener('click', () => {
+    lyricsElement.style.display = lyricsElement.style.display === 'block' ? 'none' : 'block';
+});
+
+// Actualizar la letra y la barra de progreso en tiempo real
+audio.addEventListener('timeupdate', () => {
+    highlightLyrics();
+    updateProgress();
+});
+
+// Mostrar la letra cuando se carga la página
+displayLyrics();
+
+
+    </script>
+</body>
+</html>
